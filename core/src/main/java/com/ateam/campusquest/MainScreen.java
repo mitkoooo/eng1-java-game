@@ -13,10 +13,6 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 public class MainScreen implements Screen {
     private Main parent;
-
-    public MainScreen(Main main){
-        parent = main;
-    }
     private SpriteBatch batch;
     private Texture map;
     private Texture buildingTexture; // Texture for buildings
@@ -31,6 +27,11 @@ public class MainScreen implements Screen {
     private static final float VIRTUAL_HEIGHT = GRID_ROWS * TILE_SIZE;
 
     private ShapeRenderer shapeRenderer;
+
+    public MainScreen(Main main) {
+        parent = main;
+        create();
+    }
 
     public void create() {
         batch = new SpriteBatch();
@@ -77,8 +78,8 @@ public class MainScreen implements Screen {
         });
     }
 
-
-    public void render() {
+    @Override
+    public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1);
         camera.update();
         batch.setProjectionMatrix(camera.combined);
@@ -118,11 +119,29 @@ public class MainScreen implements Screen {
         shapeRenderer.end();
     }
 
+    @Override
+    public void show() {
+
+    }
 
     public void resize(int width, int height) {
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
     }
 
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
+    }
 
     public void dispose() {
         batch.dispose();
@@ -146,28 +165,5 @@ public class MainScreen implements Screen {
 
         return new int[]{row, col}; // Return the valid indices
     }
-    @Override
-    public void show() {
 
-    }
-
-    @Override
-    public void render(float v) {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
 }
