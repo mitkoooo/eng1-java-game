@@ -1,131 +1,193 @@
 package com.ateam.campusquest;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.maps.tiled.*;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
-    private Main parent;
-    private SpriteBatch batch;
-    private Texture map;
-    private Texture buildingTexture; // Texture for buildings
 
+    private final Main parent;
     private OrthographicCamera camera;
-    private StretchViewport viewport;
-    private Tile[][] grid;
-    private static final int GRID_ROWS = 10; // Example grid size
-    private static final int GRID_COLS = 10;
-    private static final float TILE_SIZE = 64; // Size of each tile
-    private static final float VIRTUAL_WIDTH = GRID_COLS * TILE_SIZE;
-    private static final float VIRTUAL_HEIGHT = GRID_ROWS * TILE_SIZE;
+    private Viewport viewport;
 
-    private ShapeRenderer shapeRenderer;
+    private TiledMap campusMap;
+    private OrthogonalTiledMapRenderer mapRenderer;
+    private TiledMapTileLayer roadLayer;
+    private TiledMapTileLayer backgroundLayer;
+    private TiledMapTileLayer buildingLayer;
+    private TiledMapTileLayer highlightLayer;
+    private TiledMapTile red;
+    private TiledMapTile building;
+    private Stage uiStage;
+    private Skin skin;
+    private Building[][] buildingGrid;
+
+
+
+    private boolean buildMode = false;
 
     public MainScreen(Main main) {
-        parent = main;
-        create();
-    }
-
-    public void create() {
-        batch = new SpriteBatch();
-        map = new Texture("map.png");
-        buildingTexture = new Texture("test_tile.png"); // Load building texture
-
+        this.parent = main;
         camera = new OrthographicCamera();
-        viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
-        viewport.apply();
 
-        // Set the camera to view the map area
-        camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT); // Set to the size of the grid
 
-        // Initialize the grid with empty tiles
-        grid = new Tile[GRID_ROWS][GRID_COLS];
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLS; col++) {
-                grid[row][col] = new Tile() {}; // Start with empty tiles
-            }
-        }
+        // Load the Tiled campus map
+        campusMap = new TmxMapLoader().load("Map.tmx");
+        mapRenderer = new OrthogonalTiledMapRenderer(campusMap);
+        camera.setToOrtho(false, 960, 640);
+        backgroundLayer = (TiledMapTileLayer) campusMap.getLayers().get("BackgroundLayer");
+        roadLayer = (TiledMapTileLayer) campusMap.getLayers().get("RoadLayer");
+        buildingLayer = (TiledMapTileLayer) campusMap.getLayers().get("BuildingLayer");
+        highlightLayer = (TiledMapTileLayer) campusMap.getLayers().get("HighlightLayer");
+        building = (campusMap.getTileSets().getTileSet("Building").getTile(4));
+        red = campusMap.getTileSets().getTileSet("Red").getTile(3);
+        buildingGrid = new Building[30][20];
 
-        // Initialize ShapeRenderer for debugging
-        shapeRenderer = new ShapeRenderer();
 
-        // Set up input handling
+
+
+        // toggle build mode by pressing B logic
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                // Calculate the tile based on screen coordinates
-                int[] tileCoordinates = getTileAtScreenCoordinates(screenX, screenY);
-                int row = tileCoordinates[0];
-                int col = tileCoordinates[1];
-
-                // Only place building if the tile indices are valid
-                if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS) {
-                    Building building = new Building(buildingTexture);
-                    grid[row][col] = building; // Replace the empty tile with a building
-                    System.out.println("Building placed at Row: " + row + " Col: " + col);
-                } else {
-                    System.out.println("Invalid tile selection: Row: " + row + " Col: " + col);
+            public boolean keyDown(int keycode) {
+                if (keycode == Input.Keys.B) {
+                    buildMode = !buildMode;  // Toggle build mode
+                    System.out.println("Build mode: " + (buildMode ? "ON" : "OFF"));
+                    return true;
                 }
-                return true; // Consume the event
+                return false;
             }
+
+
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                if (buildMode && button == Input.Buttons.LEFT) {
+                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+                    camera.unproject(worldCoords);
+                    int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
+                    int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+
+                    // Attempt to place a 2x2 building
+                    placeBuilding(tileX, tileY);
+                    buildMode = false;
+                    return true;
+                }
+                if (!buildMode && button == Input.Buttons.LEFT) {
+                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+                    camera.unproject(worldCoords);
+                    int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
+                    int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+                    Building clickedBuilding = buildingGrid[tileX][tileY];
+                    // Whatever we want to do with buildings goes here
+                    System.out.println(clickedBuilding.getX() + " " + clickedBuilding.getY());
+
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean mouseMoved(int screenX, int screenY) {
+                if (buildMode) {
+                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+                    camera.unproject(worldCoords);
+                    int tileX = (int) (worldCoords.x / highlightLayer.getTileWidth());
+                    int tileY = (int) (worldCoords.y / highlightLayer.getTileHeight());
+                    highlightPlacement(tileX, tileY); // Highlight where the building will be placed
+                }
+                return false;
+            }
+
         });
+
+
+    }
+    private void placeBuilding(int x, int y) {
+        // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
+        if (isAreaClear(x, y)) {
+            // Place the single 2x2 building tile at the bottom-left cell of the 2x2 space
+            clearHighlightLayer();
+            buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(building));
+            Building newBuilding = new Building(x, y);
+            buildingGrid[x][y] = newBuilding;
+            buildingGrid[x][y+1] = newBuilding;
+            buildingGrid[x+1][y] = newBuilding;
+            buildingGrid[x+1][y+1] = newBuilding;
+
+        } else {
+            System.out.println("Cannot place building here, area is not clear!");
+        }
+    }
+
+    private boolean isAreaClear(int x, int y) {
+        // Check if clear of roads
+        if (!(roadLayer.getCell(x, y) == null && roadLayer.getCell(x + 1, y) == null &&
+            roadLayer.getCell(x, y + 1) == null && roadLayer.getCell(x + 1, y + 1) == null)){
+            System.out.println("Road Blocking");
+            return false;
+        }
+
+        // check if buildings are already there
+        if (!(buildingGrid[x][y] == null && buildingGrid[x][y+1] == null &&
+            buildingGrid[x+1][y] == null && buildingGrid[x+1][y+1] == null)){
+            System.out.println("Building Blocking");
+            return false;
+        }
+        // if clear of all return true
+        return true;
+    }
+
+
+    private void clearHighlightLayer() {
+        for (int x = 0; x < highlightLayer.getWidth(); x++) {
+            for (int y = 0; y < highlightLayer.getHeight(); y++) {
+                highlightLayer.setCell(x, y, null); // Clear each cell
+            }
+        }
+    }
+
+    private void highlightPlacement(int x, int y) {
+        // Clear previous highlights
+        clearHighlightLayer();
+
+        // Highlight the new position
+        if (isAreaClear(x, y)) {
+            // Set highlight tiles (you would replace this with your actual highlight tile)
+            highlightLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(building));
+
+        } else {
+            System.out.println("Cannot highlight here, area is not clear!");
+        }
+    }
+
+
+    @Override
+    public void show() {
     }
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1); // Set clear colour
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
         camera.update();
-        batch.setProjectionMatrix(camera.combined);
-
-        batch.begin();
-        // Draw the map texture
-        batch.draw(map, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT); // Draw the full map size
-
-        // Draw buildings on the grid
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLS; col++) {
-                Tile tile = grid[row][col];
-                if (tile instanceof Building) {
-                    Building building = (Building) tile;
-                    // Calculate the building's position
-                    float x = col * TILE_SIZE;
-                    float y = row * TILE_SIZE;
-                    // Draw the building using its texture
-                    batch.draw(building.getTexture(), x, y);
-                }
-            }
-        }
-
-        batch.end();
-
-        // Debugging: Draw grid lines
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(1, 0, 0, 1); // Red color for grid lines
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLS; col++) {
-                float x = col * TILE_SIZE;
-                float y = row * TILE_SIZE;
-                shapeRenderer.rect(x, y, TILE_SIZE, TILE_SIZE); // Draw rectangle for each tile
-            }
-        }
-        shapeRenderer.end();
+        mapRenderer.setView(camera);
+        mapRenderer.render();
     }
 
     @Override
-    public void show() {
-
-    }
-
     public void resize(int width, int height) {
-        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+
+
     }
 
     @Override
@@ -143,27 +205,13 @@ public class MainScreen implements Screen {
 
     }
 
+
+    @Override
     public void dispose() {
-        batch.dispose();
-        map.dispose();
-        buildingTexture.dispose(); // Dispose of the building texture
-        shapeRenderer.dispose(); // Dispose of the shape renderer
+        mapRenderer.dispose();
+        campusMap.dispose();
+        uiStage.dispose();
+        skin.dispose();
+
     }
-
-    private int[] getTileAtScreenCoordinates(int screenX, int screenY) {
-        // Convert screen coordinates to world coordinates
-        Vector3 worldCoordinates = camera.unproject(new Vector3(screenX, screenY, 0));
-
-        // Calculate column and row based on world coordinates
-        int col = (int) (worldCoordinates.x / TILE_SIZE);
-        int row = (int) (worldCoordinates.y / TILE_SIZE); // Direct calculation for top-left origin
-
-        // Check bounds
-        if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) {
-            return new int[]{-1, -1}; // Return invalid indices if out of bounds
-        }
-
-        return new int[]{row, col}; // Return the valid indices
-    }
-
 }
