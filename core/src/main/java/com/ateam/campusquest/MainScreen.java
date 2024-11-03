@@ -26,7 +26,7 @@ public class MainScreen implements Screen {
     private TiledMapTileLayer backgroundLayer;
     private TiledMapTileLayer buildingLayer;
     private TiledMapTileLayer highlightLayer;
-    private TiledMapTile red;
+    private TiledMapTileLayer obstacleLayer;
     private TiledMapTile building;
     private Stage uiStage;
     private Skin skin;
@@ -47,10 +47,10 @@ public class MainScreen implements Screen {
         camera.setToOrtho(false, 960, 640);
         backgroundLayer = (TiledMapTileLayer) campusMap.getLayers().get("BackgroundLayer");
         roadLayer = (TiledMapTileLayer) campusMap.getLayers().get("RoadLayer");
+        obstacleLayer = (TiledMapTileLayer) campusMap.getLayers().get("ObstacleLayer");
         buildingLayer = (TiledMapTileLayer) campusMap.getLayers().get("BuildingLayer");
         highlightLayer = (TiledMapTileLayer) campusMap.getLayers().get("HighlightLayer");
         building = (campusMap.getTileSets().getTileSet("Building").getTile(4));
-        red = campusMap.getTileSets().getTileSet("Red").getTile(3);
         buildingGrid = new Building[30][20];
 
 
@@ -79,7 +79,7 @@ public class MainScreen implements Screen {
 
                     // Attempt to place a 2x2 building
                     placeBuilding(tileX, tileY);
-                    buildMode = false;
+
                     return true;
                 }
                 if (!buildMode && button == Input.Buttons.LEFT) {
@@ -87,7 +87,11 @@ public class MainScreen implements Screen {
                     camera.unproject(worldCoords);
                     int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
                     int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+
                     Building clickedBuilding = buildingGrid[tileX][tileY];
+                    if (clickedBuilding == null){
+                        return false;
+                    }
                     // Whatever we want to do with buildings goes here
                     System.out.println(clickedBuilding.getX() + " " + clickedBuilding.getY());
 
@@ -123,6 +127,7 @@ public class MainScreen implements Screen {
             buildingGrid[x][y+1] = newBuilding;
             buildingGrid[x+1][y] = newBuilding;
             buildingGrid[x+1][y+1] = newBuilding;
+            buildMode = false;
 
         } else {
             System.out.println("Cannot place building here, area is not clear!");
