@@ -76,6 +76,9 @@ public class MainScreen implements Screen {
                     camera.unproject(worldCoords);
                     int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
                     int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+                    if (isOutOfBounds(tileX, tileY)) {
+                        return false;
+                    }
 
                     // Attempt to place a 2x2 building
                     placeBuilding(tileX, tileY);
@@ -87,6 +90,9 @@ public class MainScreen implements Screen {
                     camera.unproject(worldCoords);
                     int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
                     int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+                    if (isOutOfBounds(tileX, tileY)) {
+                        return false;
+                    }
 
                     Building clickedBuilding = buildingGrid[tileX][tileY];
                     if (clickedBuilding == null){
@@ -107,6 +113,10 @@ public class MainScreen implements Screen {
                     camera.unproject(worldCoords);
                     int tileX = (int) (worldCoords.x / highlightLayer.getTileWidth());
                     int tileY = (int) (worldCoords.y / highlightLayer.getTileHeight());
+                    if (isOutOfBounds(tileX, tileY)) {
+                        return false;
+                    }
+                    System.out.println(tileX + " " + tileY);
                     highlightPlacement(tileX, tileY); // Highlight where the building will be placed
                 }
                 return false;
@@ -116,8 +126,21 @@ public class MainScreen implements Screen {
 
 
     }
+
+
+
+    private boolean isOutOfBounds(int x, int y){
+        // method to check if the tile is out of bounds
+        // there are 30x20 tiles but index 0, 0 is the first tile so check bounds as 29 and 19
+        return x >= 29 || y >= 19 || x < 0 || y < 0;
+    }
+
     private void placeBuilding(int x, int y) {
         // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
+        if(!isNextToRoad(x, y)){
+            System.out.println("Can not place away from road");
+            return;
+        }
         if (isAreaClear(x, y)) {
             // Place the single 2x2 building tile at the bottom-left cell of the 2x2 space
             clearHighlightLayer();
@@ -152,6 +175,17 @@ public class MainScreen implements Screen {
         return true;
     }
 
+    private boolean isNextToRoad(int x, int y){
+        // Buildings are 2x2 so checks if any of the four tiles are next to road
+        return (roadLayer.getCell(x - 1, y) != null ||
+            roadLayer.getCell(x - 1, y+1) != null ||
+            roadLayer.getCell(x, y + 2) != null ||
+            roadLayer.getCell(x + 1, y + 2) != null ||
+            roadLayer.getCell(x + 2, y) != null ||
+            roadLayer.getCell(x + 2, y + 1) != null ||
+            roadLayer.getCell(x + 1, y - 1) != null ||
+            roadLayer.getCell(x, y - 1) != null);
+    }
 
     private void clearHighlightLayer() {
         for (int x = 0; x < highlightLayer.getWidth(); x++) {
@@ -166,6 +200,9 @@ public class MainScreen implements Screen {
         clearHighlightLayer();
 
         // Highlight the new position
+        if(!isNextToRoad(x, y)){
+            return;
+        }
         if (isAreaClear(x, y)) {
             // Set highlight tiles (you would replace this with your actual highlight tile)
             highlightLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(building));
