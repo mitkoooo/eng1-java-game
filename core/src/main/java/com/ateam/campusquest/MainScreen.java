@@ -35,6 +35,7 @@ public class MainScreen implements Screen {
 
 
     private boolean buildMode = false;
+    private int buildingType;
 
     public MainScreen(Main main) {
         this.parent = main;
@@ -50,8 +51,8 @@ public class MainScreen implements Screen {
         obstacleLayer = (TiledMapTileLayer) campusMap.getLayers().get("ObstacleLayer");
         buildingLayer = (TiledMapTileLayer) campusMap.getLayers().get("BuildingLayer");
         highlightLayer = (TiledMapTileLayer) campusMap.getLayers().get("HighlightLayer");
-        building = (campusMap.getTileSets().getTileSet("Building").getTile(4));
         buildingGrid = new Building[30][20];
+        buildingType = 1;
 
 
 
@@ -61,8 +62,7 @@ public class MainScreen implements Screen {
             @Override
             public boolean keyDown(int keycode) {
                 if (keycode == Input.Keys.B) {
-                    buildMode = !buildMode;  // Toggle build mode
-                    System.out.println("Build mode: " + (buildMode ? "ON" : "OFF"));
+                    buildMode = true;  // Toggle build mode
                     return true;
                 }
                 return false;
@@ -116,7 +116,6 @@ public class MainScreen implements Screen {
                     if (isOutOfBounds(tileX, tileY)) {
                         return false;
                     }
-                    System.out.println(tileX + " " + tileY);
                     highlightPlacement(tileX, tileY); // Highlight where the building will be placed
                 }
                 return false;
@@ -135,6 +134,23 @@ public class MainScreen implements Screen {
         return x >= 29 || y >= 19 || x < 0 || y < 0;
     }
 
+    private TiledMapTile getBuildingTexture(int buildingType){
+        if (buildingType == 1){
+            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+        }
+        else if (buildingType == 2){
+            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+        }
+        else if (buildingType == 3){
+            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+        }
+        else if (buildingType == 4){
+            return(campusMap.getTileSets().getTileSet("Building").getTile(4));
+        }
+        return(campusMap.getTileSets().getTileSet("Building").getTile(4));
+
+    }
+
     private void placeBuilding(int x, int y) {
         // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
         if(!isNextToRoad(x, y)){
@@ -144,7 +160,7 @@ public class MainScreen implements Screen {
         if (isAreaClear(x, y)) {
             // Place the single 2x2 building tile at the bottom-left cell of the 2x2 space
             clearHighlightLayer();
-            buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(building));
+            buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(((getBuildingTexture(buildingType)))));
             Building newBuilding = new Building(x, y);
             buildingGrid[x][y] = newBuilding;
             buildingGrid[x][y+1] = newBuilding;
@@ -205,7 +221,7 @@ public class MainScreen implements Screen {
         }
         if (isAreaClear(x, y)) {
             // Set highlight tiles (you would replace this with your actual highlight tile)
-            highlightLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(building));
+            highlightLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(getBuildingTexture(buildingType)));
 
         } else {
             System.out.println("Cannot highlight here, area is not clear!");
