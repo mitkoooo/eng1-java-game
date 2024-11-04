@@ -9,19 +9,14 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -50,18 +45,30 @@ public class MainScreen implements Screen {
     private Texture buildingTexture2;
     private Texture buildingTexture3;
     private Texture buildingTexture4;
+    private Texture pausebuttonTexture;
+    private Texture resumebuttonTexture;
+    private Texture progressBarTexture;
+    private Texture progressKnobTexture;
+
     private Stage stage;
 
     private ImageButton buildbutton;
     private ImageButton exitbutton;
 
-
-
+    private Label timerLabel;
+    private float countdownTime = 300; // 300 seconds
+    private float elapsedTime = 0;
+    private boolean isRunning = false;
 
     private boolean buildMode = false;
+    private boolean suspendedBuilding = false;
     private int buildingType;
 
+    private ProgressBar progressBar;
+    private float progress = 0;
+
     public MainScreen(Main main) {
+        startTimer();
         this.parent = main;
         camera = new OrthographicCamera();
 
@@ -79,6 +86,8 @@ public class MainScreen implements Screen {
 
         stage = new Stage(new ScreenViewport());
         batch = new SpriteBatch();
+        skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
+
 
         // Load assets
         buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
@@ -87,6 +96,52 @@ public class MainScreen implements Screen {
         buildingTexture2 = new Texture(Gdx.files.internal("test_tile.png"));
         buildingTexture3 = new Texture(Gdx.files.internal("test_tile.png"));
         buildingTexture4 = new Texture(Gdx.files.internal("test_tile.png"));
+        pausebuttonTexture = new Texture(Gdx.files.internal("pause_button.png"));
+        resumebuttonTexture = new Texture(Gdx.files.internal("resume_button.png"));
+        progressBarTexture = new Texture(Gdx.files.internal("progress_bar.png"));
+        progressKnobTexture = new Texture(Gdx.files.internal("progress_knob.png"));
+
+
+        // Setup clock
+        timerLabel = new Label(formatTime(countdownTime), skin);
+        timerLabel.setColor(Color.BLACK);
+        timerLabel.setFontScale(2);
+
+        TextureRegionDrawable pauseDrawable = new TextureRegionDrawable(pausebuttonTexture);
+        ImageButton pauseButton = new ImageButton(pauseDrawable);
+        TextureRegionDrawable resumeDrawable = new TextureRegionDrawable(resumebuttonTexture);
+        ImageButton resumeButton = new ImageButton(resumeDrawable);
+
+        pauseButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                pauseTimer();
+            }
+        });
+        resumeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                resumeTimer();
+            }
+        });
+
+        // Create a ProgressBar
+        ProgressBar.ProgressBarStyle progressBarStyle = new ProgressBar.ProgressBarStyle();
+        progressBarStyle.background = new TextureRegionDrawable(progressBarTexture);
+        progressBarStyle.knob = new TextureRegionDrawable(progressKnobTexture);
+        progressBar = new ProgressBar(0, 100, 1, false, progressBarStyle);
+        progressBar.setValue(progress); // Set initial value
+
+        TextButton increaseButton = new TextButton("Increase", skin);
+        increaseButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                // Increase progress by 10 each time the button is clicked
+                progress += 10;
+                if (progress > 100) progress = 100; // Cap at 100
+                progressBar.setValue(progress);
+            }
+        });
 
         // Setup UI
         Table table = new Table();
@@ -114,8 +169,15 @@ public class MainScreen implements Screen {
         TextureRegionDrawable exitdrawable = new TextureRegionDrawable(exitbuttonTexture);
         exitbutton = new ImageButton(exitdrawable);
 
-        table.add(buildbutton).expandX().left().size(45, 45).pad(10);
-        table.add(exitbutton).expandX().right().size(45, 45).pad(10);
+        // Set up layout
+        table.add(buildbutton).width(70).height(50).pad(10).expandX().left();
+        table.add(pauseButton).width(70).height(50).pad(10);
+        table.add(resumeButton).width(70).height(50).pad(10);
+        table.add(exitbutton).width(70).height(50).pad(10).expandX().right();
+        table.row();
+        table.add(timerLabel).width(300).center().colspan(2).pad(30);
+        table.add(progressBar).width(300).height(30).center().colspan(2).pad(30);
+        table.add(increaseButton).size(100,50);
 
         stage.addActor(table);
         stage.addActor(popupTable);
@@ -223,6 +285,10 @@ public class MainScreen implements Screen {
         // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
         if(!isNextToRoad(x, y)){
             System.out.println("Can not place away from road");
+            return;
+        }
+        if(suspendedBuilding){
+            System.out.println("Can not place when timer paused");
             return;
         }
         if (isAreaClear(x, y)) {
@@ -362,6 +428,16 @@ public class MainScreen implements Screen {
         ScreenUtils.clear(0, 0, 0, 1);
         camera.update();
 
+        if (isRunning){
+            elapsedTime += delta;
+            if (elapsedTime >= countdownTime){
+                isRunning = false;
+                parent.changeScreen(Main.ENDGAME);
+            } else {
+                timerLabel.setText(formatTime(countdownTime- elapsedTime));
+            }
+        }
+
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
@@ -372,6 +448,35 @@ public class MainScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+    }
+
+    private void startTimer(){
+        elapsedTime = 0;
+        isRunning = true;
+        suspendedBuilding = false;
+    }
+
+    private void pauseTimer(){
+        isRunning = false;
+        suspendedBuilding = true;
+    }
+
+    private void resumeTimer(){
+        isRunning = true;
+        suspendedBuilding = false;
+    }
+
+    private void resetTimer(){
+        elapsedTime = 0;
+        timerLabel.setText(formatTime(countdownTime));
+        isRunning = false;
+        suspendedBuilding = false;
+    }
+
+    private String formatTime(float time){
+        int minutes = (int) (time / 60);
+        int seconds = (int) (time % 60);
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     @Override
