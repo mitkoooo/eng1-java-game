@@ -1,9 +1,6 @@
 package com.ateam.campusquest;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -68,7 +65,6 @@ public class MainScreen implements Screen {
         this.parent = main;
         camera = new OrthographicCamera();
 
-
         // Load the Tiled campus map
         campusMap = new TmxMapLoader().load("Map.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(campusMap);
@@ -82,10 +78,9 @@ public class MainScreen implements Screen {
         buildingType = 1;
 
         stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
         batch = new SpriteBatch();
 
-
+        // Load assets
         buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
         exitbuttonTexture = new Texture(Gdx.files.internal("back_button.png"));
         buildingTexture1 = new Texture(Gdx.files.internal("test_tile.png"));
@@ -93,12 +88,13 @@ public class MainScreen implements Screen {
         buildingTexture3 = new Texture(Gdx.files.internal("test_tile.png"));
         buildingTexture4 = new Texture(Gdx.files.internal("test_tile.png"));
 
+        // Setup UI
         Table table = new Table();
         table.top();
         table.setFillParent(true);
 
         popupTable = new Table();
-        popupTable.setSize(300,500);
+        popupTable.setSize(300, 500);
         popupTable.setBackground(new TextureRegionDrawable(new Texture(Gdx.files.internal("popup_background.png"))));
         popupTable.add(new Label("Build Menu", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
         popupTable.row();
@@ -112,18 +108,14 @@ public class MainScreen implements Screen {
         popupTable.setVisible(false);
         popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
 
-
         TextureRegionDrawable drawable = new TextureRegionDrawable(buildbuttonTexture);
         buildbutton = new ImageButton(drawable);
-
 
         TextureRegionDrawable exitdrawable = new TextureRegionDrawable(exitbuttonTexture);
         exitbutton = new ImageButton(exitdrawable);
 
-
-
-        table.add(buildbutton).expandX().left().size(45,45).pad(10);
-        table.add(exitbutton).expandX().right().size(45,45).pad(10);
+        table.add(buildbutton).expandX().left().size(45, 45).pad(10);
+        table.add(exitbutton).expandX().right().size(45, 45).pad(10);
 
         stage.addActor(table);
         stage.addActor(popupTable);
@@ -141,52 +133,41 @@ public class MainScreen implements Screen {
             }
         });
 
-        // toggle build mode by pressing B logic
-        Gdx.input.setInputProcessor(new InputAdapter() {
+        // Input Multiplexer to handle both stage and custom inputs
+        InputMultiplexer multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
                 if (keycode == Input.Keys.B) {
-                    buildMode = true;  // Toggle build mode
+                    buildMode = !buildMode;  // Toggle build mode
+                    clearHighlightLayer();
+                    System.out.println("Build mode toggled: " + buildMode);
                     return true;
                 }
                 return false;
             }
 
-
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+                camera.unproject(worldCoords);
+                int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
+                int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+
+                if (isOutOfBounds(tileX, tileY)) {
+                    return false;
+                }
+
                 if (buildMode && button == Input.Buttons.LEFT) {
-                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
-                    camera.unproject(worldCoords);
-                    int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
-                    int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
-                    if (isOutOfBounds(tileX, tileY)) {
-                        return false;
-                    }
-
-                    // Attempt to place a 2x2 building
                     placeBuilding(tileX, tileY);
-
                     return true;
-                }
-                if (!buildMode && button == Input.Buttons.LEFT) {
-                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
-                    camera.unproject(worldCoords);
-                    int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
-                    int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
-                    if (isOutOfBounds(tileX, tileY)) {
-                        return false;
-                    }
-
+                } else if (!buildMode && button == Input.Buttons.LEFT) {
                     Building clickedBuilding = buildingGrid[tileX][tileY];
-                    if (clickedBuilding == null){
-                        return false;
+                    if (clickedBuilding != null) {
+                        System.out.println(clickedBuilding.getX() + " " + clickedBuilding.getY());
                     }
-                    // Whatever we want to do with buildings goes here
-                    System.out.println(clickedBuilding.getX() + " " + clickedBuilding.getY());
-
+                    return false;
                 }
-
                 return false;
             }
 
@@ -197,18 +178,19 @@ public class MainScreen implements Screen {
                     camera.unproject(worldCoords);
                     int tileX = (int) (worldCoords.x / highlightLayer.getTileWidth());
                     int tileY = (int) (worldCoords.y / highlightLayer.getTileHeight());
-                    if (isOutOfBounds(tileX, tileY)) {
-                        return false;
+
+                    if (!isOutOfBounds(tileX, tileY)) {
+                        highlightPlacement(tileX, tileY);
                     }
-                    highlightPlacement(tileX, tileY); // Highlight where the building will be placed
+                    return false;
                 }
                 return false;
             }
-
         });
-
-
+        multiplexer.addProcessor(stage);
+        Gdx.input.setInputProcessor(multiplexer); // Set the input processor to the multiplexer
     }
+
 
 
 
@@ -225,7 +207,7 @@ public class MainScreen implements Screen {
         else if (buildingType == 2){
             // lecture building
 
-            return (campusMap.getTileSets().getTileSet("Building").getTile(5));
+            return (campusMap.getTileSets().getTileSet("LectureBuilding").getTile(5));
         }
         else if (buildingType == 3){
             return (campusMap.getTileSets().getTileSet("Building").getTile(4));
@@ -247,6 +229,7 @@ public class MainScreen implements Screen {
             // Place the single 2x2 building tile at the bottom-left cell of the 2x2 space
             clearHighlightLayer();
             Building newBuilding;
+
             buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(((getBuildingTexture(buildingType)))));
             if (buildingType ==  1) {
                  newBuilding = new AccomodationBuilding(x, y);
@@ -337,7 +320,7 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(stage);
+        // Gdx.input.setInputProcessor(stage);
 
     }
     private void addIconWithLabel(Table table, Texture iconTexture, String labelText) {
