@@ -4,6 +4,7 @@
  <tileset firstgid="2" source="Road.tsx"/>
  <tileset firstgid="3" source="Red.tsx"/>
  <tileset firstgid="4" source="Building.tsx"/>
+ <tileset firstgid="5" source="LectureBuilding.tsx"/>
  <layer id="1" name="BackgroundLayer" width="30" height="20">
   <data encoding="csv">
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
