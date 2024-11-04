@@ -160,8 +160,28 @@ public class MainScreen implements Screen {
         if (isAreaClear(x, y)) {
             // Place the single 2x2 building tile at the bottom-left cell of the 2x2 space
             clearHighlightLayer();
+            Building newBuilding;
             buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(((getBuildingTexture(buildingType)))));
-            Building newBuilding = new Building(x, y);
+            if (buildingType ==  1) {
+                 newBuilding = new AccomodationBuilding(x, y);
+
+            }
+            else if (buildingType == 2){
+                 newBuilding = new LectureBuilding(x, y);
+
+            }
+            else if (buildingType == 3){
+                 newBuilding = new CafeBuilding(x, y);
+
+            }
+            else if (buildingType == 4){
+                newBuilding = new RecreationalBuilding(x, y);
+
+            }
+            else{
+                System.out.println("ERROR No building type");
+                return;
+            }
             buildingGrid[x][y] = newBuilding;
             buildingGrid[x][y+1] = newBuilding;
             buildingGrid[x+1][y] = newBuilding;
