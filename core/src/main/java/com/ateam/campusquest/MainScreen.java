@@ -4,14 +4,29 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
@@ -28,9 +43,21 @@ public class MainScreen implements Screen {
     private TiledMapTileLayer highlightLayer;
     private TiledMapTileLayer obstacleLayer;
     private TiledMapTile building;
-    private Stage uiStage;
     private Skin skin;
     private Building[][] buildingGrid;
+    private SpriteBatch batch;
+    private Texture buildbuttonTexture;
+    private Texture exitbuttonTexture;
+    private Table popupTable;
+    private Texture buildingTexture1;
+    private Texture buildingTexture2;
+    private Texture buildingTexture3;
+    private Texture buildingTexture4;
+    private Stage stage;
+
+    private ImageButton buildbutton;
+    private ImageButton exitbutton;
+
 
 
 
@@ -54,8 +81,65 @@ public class MainScreen implements Screen {
         buildingGrid = new Building[30][20];
         buildingType = 1;
 
+        stage = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(stage);
+        batch = new SpriteBatch();
 
 
+        buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
+        exitbuttonTexture = new Texture(Gdx.files.internal("back_button.png"));
+        buildingTexture1 = new Texture(Gdx.files.internal("test_tile.png"));
+        buildingTexture2 = new Texture(Gdx.files.internal("test_tile.png"));
+        buildingTexture3 = new Texture(Gdx.files.internal("test_tile.png"));
+        buildingTexture4 = new Texture(Gdx.files.internal("test_tile.png"));
+
+        Table table = new Table();
+        table.top();
+        table.setFillParent(true);
+
+        popupTable = new Table();
+        popupTable.setSize(300,500);
+        popupTable.setBackground(new TextureRegionDrawable(new Texture(Gdx.files.internal("popup_background.png"))));
+        popupTable.add(new Label("Build Menu", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
+        popupTable.row();
+        popupTable.add(new Label("Select Building:", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
+        popupTable.row();
+        addIconWithLabel(popupTable, buildingTexture1, "Accomodation Building");
+        addIconWithLabel(popupTable, buildingTexture2, "Lecture Building");
+        addIconWithLabel(popupTable, buildingTexture3, "Recreational Building");
+        addIconWithLabel(popupTable, buildingTexture4, "Restaurant Building");
+
+        popupTable.setVisible(false);
+        popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
+
+
+        TextureRegionDrawable drawable = new TextureRegionDrawable(buildbuttonTexture);
+        buildbutton = new ImageButton(drawable);
+
+
+        TextureRegionDrawable exitdrawable = new TextureRegionDrawable(exitbuttonTexture);
+        exitbutton = new ImageButton(exitdrawable);
+
+
+
+        table.add(buildbutton).expandX().left().size(45,45).pad(10);
+        table.add(exitbutton).expandX().right().size(45,45).pad(10);
+
+        stage.addActor(table);
+        stage.addActor(popupTable);
+
+        buildbutton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                popupTable.setVisible(!popupTable.isVisible());
+            }
+        });
+        exitbutton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.changeScreen(Main.MENU);
+            }
+        });
 
         // toggle build mode by pressing B logic
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -251,20 +335,67 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
+
     }
+    private void addIconWithLabel(Table table, Texture iconTexture, String labelText) {
+        TextureRegionDrawable iconDrawable = new TextureRegionDrawable(iconTexture);
+
+        ImageButton iconButton = new ImageButton(iconDrawable);
+        iconButton.setSize(50,50);
+
+        iconButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                popupTable.setVisible(!popupTable.isVisible());
+                if (labelText.equals("Accomodation Building")){
+                    buildingType = 1;
+                }
+                else if (labelText.equals("Lecture Building")){
+                    buildingType = 2;
+                }
+                else if (labelText.equals("Recreational Building")){
+                    buildingType = 4;
+                }
+                else if (labelText.equals("Restaurant Building")){
+                    buildingType = 3;
+                }
+                buildMode = true;
+            }
+         });
+
+        table.add(iconButton).size(50,50).pad(10);
+        table.add(new Label(labelText, new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10);
+        table.row();
+    }
+
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1); // Set clear colour
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
+        ScreenUtils.clear(0, 0, 0, 1);
         camera.update();
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+
         mapRenderer.setView(camera);
         mapRenderer.render();
+
+        batch.end();
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
+
     }
 
     @Override
     public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
+        popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
 
+        buildbutton.setPosition(10, height  - 10);
+        exitbutton.setPosition(10, height  - 10);
 
     }
 
@@ -288,8 +419,8 @@ public class MainScreen implements Screen {
     public void dispose() {
         mapRenderer.dispose();
         campusMap.dispose();
-        uiStage.dispose();
         skin.dispose();
+        stage.dispose();
 
     }
 }
