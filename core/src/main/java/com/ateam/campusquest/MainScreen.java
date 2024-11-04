@@ -139,7 +139,9 @@ public class MainScreen implements Screen {
             return (campusMap.getTileSets().getTileSet("Building").getTile(4));
         }
         else if (buildingType == 2){
-            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+            // lecture building
+
+            return (campusMap.getTileSets().getTileSet("Building").getTile(5));
         }
         else if (buildingType == 3){
             return (campusMap.getTileSets().getTileSet("Building").getTile(4));
