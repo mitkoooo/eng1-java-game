@@ -2,7 +2,7 @@ package com.ateam.campusquest;
 
 import com.badlogic.gdx.graphics.Texture;
 
-public class Building {
+abstract class Building {
     private int x, y; // Position of the building (bottom-left tile)
 
     public Building(int x, int y) {
