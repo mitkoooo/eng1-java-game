@@ -18,25 +18,24 @@ public class Main extends Game {
     public final static int ENDGAME = 3;
 
 
-    public void changeScreen(int screen){
+    public void changeScreen(int screen, int buildingCounter, int progress){
         switch(screen){
             case MENU:
                 if(menuScreen == null) menuScreen = new MenuScreen(this);
-                this.setScreen(menuScreen);
+                this.setScreen(new MenuScreen(this));
                 break;
             case PREFERENCES:
                 if(preferencesScreen == null) preferencesScreen = new PreferencesScreen(this);
-                this.setScreen(preferencesScreen);
+                this.setScreen(new PreferencesScreen(this));
                 break;
             case APPLICATION:
                 if(mainScreen == null) mainScreen = new MainScreen(this);
-                this.setScreen(mainScreen);
+                this.setScreen(new MainScreen(this));
                 break;
             case ENDGAME:
-                if(endScreen == null) endScreen = new EndScreen(this);
-                this.setScreen(endScreen);
+                if(endScreen == null) endScreen = new EndScreen(this,buildingCounter, progress);
+                this.setScreen(new EndScreen(this, buildingCounter, progress));
                 break;
-
         }
     }
 

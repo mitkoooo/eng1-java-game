@@ -56,16 +56,19 @@ public class MainScreen implements Screen {
     private ImageButton exitbutton;
 
     private Label timerLabel;
-    private float countdownTime = 300; // 300 seconds
+    private Label progressLabel;
+    private Label counterLabel;
+    private float countdownTime = 20; // 300 seconds
     private float elapsedTime = 0;
     private boolean isRunning = false;
 
     private boolean buildMode = false;
     private boolean suspendedBuilding = false;
     private int buildingType;
+    private int buildingCounter = 0;
 
     private ProgressBar progressBar;
-    private float progress = 0;
+    private int progress = 0;
 
     public MainScreen(Main main) {
         startTimer();
@@ -101,11 +104,15 @@ public class MainScreen implements Screen {
         progressBarTexture = new Texture(Gdx.files.internal("progress_bar.png"));
         progressKnobTexture = new Texture(Gdx.files.internal("progress_knob.png"));
 
+        //Building Counter
+        counterLabel = new Label("Buildings: " + buildingCounter, skin);
+        counterLabel.setColor(Color.BLACK);
+        counterLabel.setFontScale(2);
 
         // Setup clock
         timerLabel = new Label(formatTime(countdownTime), skin);
         timerLabel.setColor(Color.BLACK);
-        timerLabel.setFontScale(2);
+        timerLabel.setFontScale(3);
 
         TextureRegionDrawable pauseDrawable = new TextureRegionDrawable(pausebuttonTexture);
         ImageButton pauseButton = new ImageButton(pauseDrawable);
@@ -131,6 +138,10 @@ public class MainScreen implements Screen {
         progressBarStyle.knob = new TextureRegionDrawable(progressKnobTexture);
         progressBar = new ProgressBar(0, 100, 1, false, progressBarStyle);
         progressBar.setValue(progress); // Set initial value
+
+        progressLabel = new Label("Student Satisfaction:", skin);
+        progressLabel.setColor(Color.BLACK);
+        progressLabel.setFontScale(2);
 
         TextButton increaseButton = new TextButton("Increase", skin);
         increaseButton.addListener(new ClickListener() {
@@ -170,14 +181,15 @@ public class MainScreen implements Screen {
         exitbutton = new ImageButton(exitdrawable);
 
         // Set up layout
-        table.add(buildbutton).width(70).height(50).pad(10).expandX().left();
-        table.add(pauseButton).width(70).height(50).pad(10);
-        table.add(resumeButton).width(70).height(50).pad(10);
-        table.add(exitbutton).width(70).height(50).pad(10).expandX().right();
-        table.row();
-        table.add(timerLabel).width(300).center().colspan(2).pad(30);
-        table.add(progressBar).width(300).height(30).center().colspan(2).pad(30);
-        table.add(increaseButton).size(100,50);
+        table.add(buildbutton).width(100).height(100).expandX().left().pad(20);
+        table.add(timerLabel).width(300).center().pad(20);
+        table.add(pauseButton).width(100).height(100).pad(20);
+        table.add(resumeButton).width(100).height(100).pad(20);
+        table.add(progressLabel).width(350).pad(20);
+        table.add(progressBar).width(300).height(30).center().pad(20);
+        table.add(counterLabel).pad(20);
+        table.add(exitbutton).width(200).height(200).expandX().right().pad(20);
+        //table.add(increaseButton).size(100,50);
 
         stage.addActor(table);
         stage.addActor(popupTable);
@@ -191,7 +203,7 @@ public class MainScreen implements Screen {
         exitbutton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(Main.MENU);
+                parent.changeScreen(Main.MENU, 0,0);
             }
         });
 
@@ -322,6 +334,8 @@ public class MainScreen implements Screen {
             buildingGrid[x+1][y] = newBuilding;
             buildingGrid[x+1][y+1] = newBuilding;
             buildMode = false;
+            buildingCounter += 1;
+            counterLabel.setText("Buildings: " + buildingCounter);
 
         } else {
             System.out.println("Cannot place building here, area is not clear!");
@@ -386,9 +400,8 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
-        // Gdx.input.setInputProcessor(stage);
-
     }
+
     private void addIconWithLabel(Table table, Texture iconTexture, String labelText) {
         TextureRegionDrawable iconDrawable = new TextureRegionDrawable(iconTexture);
 
@@ -432,7 +445,7 @@ public class MainScreen implements Screen {
             elapsedTime += delta;
             if (elapsedTime >= countdownTime){
                 isRunning = false;
-                parent.changeScreen(Main.ENDGAME);
+                parent.changeScreen(Main.ENDGAME, buildingCounter, progress);
             } else {
                 timerLabel.setText(formatTime(countdownTime- elapsedTime));
             }
@@ -463,13 +476,6 @@ public class MainScreen implements Screen {
 
     private void resumeTimer(){
         isRunning = true;
-        suspendedBuilding = false;
-    }
-
-    private void resetTimer(){
-        elapsedTime = 0;
-        timerLabel.setText(formatTime(countdownTime));
-        isRunning = false;
         suspendedBuilding = false;
     }
 

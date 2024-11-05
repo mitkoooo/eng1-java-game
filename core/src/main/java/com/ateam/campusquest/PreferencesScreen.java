@@ -33,7 +33,6 @@ public class PreferencesScreen implements Screen {
 
         Table table = new Table();
         table.setFillParent(true);
-        table.setDebug(true);
         stage.addActor(table);
 
         Skin skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
@@ -84,7 +83,7 @@ public class PreferencesScreen implements Screen {
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor){
-                parent.changeScreen(Main.MENU);
+                parent.changeScreen(Main.MENU,0, 0);
             }
         });
 
