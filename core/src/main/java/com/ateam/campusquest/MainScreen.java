@@ -58,7 +58,7 @@ public class MainScreen implements Screen {
     private Label timerLabel;
     private Label progressLabel;
     private Label counterLabel;
-    private float countdownTime = 20; // 300 seconds
+    private float countdownTime = 300; // 300 seconds
     private float elapsedTime = 0;
     private boolean isRunning = false;
 
