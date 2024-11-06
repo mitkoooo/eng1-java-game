@@ -34,6 +34,7 @@ public class MainScreen implements Screen {
     private TiledMapTileLayer buildingLayer;
     private TiledMapTileLayer highlightLayer;
     private TiledMapTileLayer obstacleLayer;
+    private TiledMapTileLayer busLayer;
     private TiledMapTile building;
     private Skin skin;
     private Building[][] buildingGrid;
@@ -84,6 +85,7 @@ public class MainScreen implements Screen {
         obstacleLayer = (TiledMapTileLayer) campusMap.getLayers().get("ObstacleLayer");
         buildingLayer = (TiledMapTileLayer) campusMap.getLayers().get("BuildingLayer");
         highlightLayer = (TiledMapTileLayer) campusMap.getLayers().get("HighlightLayer");
+        busLayer = (TiledMapTileLayer) campusMap.getLayers().get("BusStop");
         buildingGrid = new Building[30][20];
         buildingType = 1;
 
@@ -106,12 +108,12 @@ public class MainScreen implements Screen {
 
         //Building Counter
         counterLabel = new Label("Buildings: " + buildingCounter, skin);
-        counterLabel.setColor(Color.BLACK);
+        counterLabel.setColor(Color.WHITE);
         counterLabel.setFontScale(2);
 
         // Setup clock
         timerLabel = new Label(formatTime(countdownTime), skin);
-        timerLabel.setColor(Color.BLACK);
+        timerLabel.setColor(Color.WHITE);
         timerLabel.setFontScale(3);
 
         TextureRegionDrawable pauseDrawable = new TextureRegionDrawable(pausebuttonTexture);
@@ -181,14 +183,14 @@ public class MainScreen implements Screen {
         exitbutton = new ImageButton(exitdrawable);
 
         // Set up layout
-        table.add(buildbutton).width(100).height(100).expandX().left().pad(20);
-        table.add(timerLabel).width(300).center().pad(20);
-        table.add(pauseButton).width(100).height(100).pad(20);
-        table.add(resumeButton).width(100).height(100).pad(20);
-        table.add(progressLabel).width(350).pad(20);
-        table.add(progressBar).width(300).height(30).center().pad(20);
-        table.add(counterLabel).pad(20);
-        table.add(exitbutton).width(200).height(200).expandX().right().pad(20);
+        table.add(buildbutton).width(100).height(100).expandX().left().padLeft(20);
+        table.add(timerLabel).width(300).center().padLeft(20);
+        table.add(pauseButton).width(100).height(100).padLeft(20);
+        table.add(resumeButton).width(100).height(100).padLeft(20);
+        //table.add(progressLabel).width(350).pad(20);
+        //table.add(progressBar).width(300).height(30).center().pad(20);
+        table.add(counterLabel).padLeft(20);
+        table.add(exitbutton).width(200).height(200).expandX().right().padRight(20);
         //table.add(increaseButton).size(100,50);
 
         stage.addActor(table);
@@ -276,20 +278,20 @@ public class MainScreen implements Screen {
 
     private TiledMapTile getBuildingTexture(int buildingType){
         if (buildingType == 1){
-            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+            return (campusMap.getTileSets().getTileSet("accomodationBuilding").getTile(6));
         }
         else if (buildingType == 2){
             // lecture building
 
-            return (campusMap.getTileSets().getTileSet("LectureBuilding").getTile(5));
+            return (campusMap.getTileSets().getTileSet("LectureBuilding").getTile(4));
         }
         else if (buildingType == 3){
-            return (campusMap.getTileSets().getTileSet("Building").getTile(4));
+            return (campusMap.getTileSets().getTileSet("cafeBuilding").getTile(7));
         }
         else if (buildingType == 4){
-            return(campusMap.getTileSets().getTileSet("Building").getTile(4));
+            return(campusMap.getTileSets().getTileSet("pubBuilding").getTile(5));
         }
-        return(campusMap.getTileSets().getTileSet("Building").getTile(4));
+        return(campusMap.getTileSets().getTileSet("Building").getTile(3));
 
     }
 
@@ -356,6 +358,21 @@ public class MainScreen implements Screen {
             System.out.println("Building Blocking");
             return false;
         }
+
+        if (!(obstacleLayer.getCell(x, y) == null && obstacleLayer.getCell(x + 1, y) == null &&
+            obstacleLayer.getCell(x, y + 1) == null && obstacleLayer.getCell(x + 1, y + 1) == null)){
+            System.out.println("Obstacle Blocking Blocking");
+            return false;
+        }
+
+
+        if (!(busLayer.getCell(x, y) == null && busLayer.getCell(x + 1, y) == null &&
+            busLayer.getCell(x, y + 1) == null && busLayer.getCell(x + 1, y + 1) == null)){
+            System.out.println("Obstacle Blocking Blocking");
+            return false;
+        }
+
+
         // if clear of all return true
         return true;
     }
