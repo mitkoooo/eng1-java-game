@@ -97,41 +97,33 @@ public class MainScreen implements Screen {
         // Load assets
         buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
         exitbuttonTexture = new Texture(Gdx.files.internal("back_button.png"));
-        buildingTexture1 = new Texture(Gdx.files.internal("test_tile.png"));
-        buildingTexture2 = new Texture(Gdx.files.internal("test_tile.png"));
-        buildingTexture3 = new Texture(Gdx.files.internal("test_tile.png"));
-        buildingTexture4 = new Texture(Gdx.files.internal("test_tile.png"));
-        pausebuttonTexture = new Texture(Gdx.files.internal("pause_button.png"));
+        buildingTexture1 = new Texture(Gdx.files.internal("accomodationBuilding.png"));
+        buildingTexture2 = new Texture(Gdx.files.internal("LectureHall.png"));
+        buildingTexture3 = new Texture(Gdx.files.internal("pub.png"));
+        buildingTexture4 = new Texture(Gdx.files.internal("cafe.png"));
         resumebuttonTexture = new Texture(Gdx.files.internal("resume_button.png"));
         progressBarTexture = new Texture(Gdx.files.internal("progress_bar.png"));
         progressKnobTexture = new Texture(Gdx.files.internal("progress_knob.png"));
 
         //Building Counter
-        counterLabel = new Label("Buildings: " + buildingCounter, skin);
-        counterLabel.setColor(Color.WHITE);
+        counterLabel = new Label("Buildings: " + buildingCounter, new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
         counterLabel.setFontScale(2);
 
         // Setup clock
-        timerLabel = new Label(formatTime(countdownTime), skin);
-        timerLabel.setColor(Color.WHITE);
+        timerLabel = new Label(formatTime(countdownTime), new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
         timerLabel.setFontScale(3);
 
-        TextureRegionDrawable pauseDrawable = new TextureRegionDrawable(pausebuttonTexture);
-        ImageButton pauseButton = new ImageButton(pauseDrawable);
         TextureRegionDrawable resumeDrawable = new TextureRegionDrawable(resumebuttonTexture);
         ImageButton resumeButton = new ImageButton(resumeDrawable);
 
-        pauseButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                pauseTimer();
-            }
-        });
         resumeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                resumeTimer();
-            }
+                if (isRunning){
+                    pauseTimer();
+                } else {
+                    resumeTimer();
+                }            }
         });
 
         // Create a ProgressBar
@@ -164,7 +156,9 @@ public class MainScreen implements Screen {
         popupTable = new Table();
         popupTable.setSize(300, 500);
         popupTable.setBackground(new TextureRegionDrawable(new Texture(Gdx.files.internal("popup_background.png"))));
-        popupTable.add(new Label("Build Menu", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
+        Label buildMenuLabel = new Label("Build Menu", new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
+        buildMenuLabel.setFontScale(2);
+        popupTable.add(buildMenuLabel).pad(10).colspan(2);
         popupTable.row();
         popupTable.add(new Label("Select Building:", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
         popupTable.row();
@@ -184,12 +178,11 @@ public class MainScreen implements Screen {
 
         // Set up layout
         table.add(buildbutton).width(100).height(100).expandX().left().padLeft(20);
-        table.add(timerLabel).width(300).center().padLeft(20);
-        table.add(pauseButton).width(100).height(100).padLeft(20);
-        table.add(resumeButton).width(100).height(100).padLeft(20);
+        table.add(timerLabel).width(150).padRight(20);
+        table.add(resumeButton).width(100).height(100);
         //table.add(progressLabel).width(350).pad(20);
         //table.add(progressBar).width(300).height(30).center().pad(20);
-        table.add(counterLabel).padLeft(20);
+        table.add(counterLabel).padLeft(30);
         table.add(exitbutton).width(200).height(200).expandX().right().padRight(20);
         //table.add(increaseButton).size(100,50);
 
