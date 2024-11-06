@@ -180,7 +180,7 @@ public class MainScreen implements Screen {
         table.add(buildbutton).width(100).height(100).expandX().left().padLeft(20);
         table.add(timerLabel).width(150).padRight(20);
         table.add(resumeButton).width(100).height(100);
-        //table.add(progressLabel).width(350).pad(20);
+        // table.add(progressLabel).width(350).pad(20);
         //table.add(progressBar).width(300).height(30).center().pad(20);
         table.add(counterLabel).padLeft(30);
         table.add(exitbutton).width(200).height(200).expandX().right().padRight(20);
