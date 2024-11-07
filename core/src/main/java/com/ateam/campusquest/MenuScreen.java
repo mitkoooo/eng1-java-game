@@ -13,13 +13,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class MenuScreen implements Screen {
     private final Stage stage;
-    private Main parent;
+    private final Main parent;
 
     /**
      * Constructor initialises the menu screen, the first proper screen
      * that the user will see, here they can start game, go to preferences
      * screen or quit
-     * @param main
      */
     public MenuScreen(Main main) {
         parent = main;

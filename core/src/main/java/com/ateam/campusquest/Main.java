@@ -6,7 +6,6 @@ import com.badlogic.gdx.audio.Music;
 
 
 public class Main extends Game {
-    private LoadingScreen loadingScreen;
     private PreferencesScreen preferencesScreen;
     private MenuScreen menuScreen;
     private MainScreen mainScreen;
@@ -24,7 +23,6 @@ public class Main extends Game {
     /**
      * Method to change screen to appropriate screen type
      *
-     * @param screen
      * @param buildingCounter   Number of buildings placed in game (used in end game screen)
      * @param progress      The student satisfaction progress (used in end game screen)
      */
@@ -55,7 +53,7 @@ public class Main extends Game {
     @Override
     public void create() {
 
-        loadingScreen = new LoadingScreen(this);
+        LoadingScreen loadingScreen = new LoadingScreen(this);
         preferences = new AppPreferences();
         setScreen(loadingScreen);
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("backgroundMusic.mp3"));
