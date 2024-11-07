@@ -20,55 +20,42 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
 
     private final Main parent;
-    private OrthographicCamera camera;
+    private final OrthographicCamera camera;
 
-    private Music buildingSoundEffect;
-    private AppPreferences preferences;
+    private final Music buildingSoundEffect;
+    private final AppPreferences preferences;
 
     // Layers for tiled map
-    private TiledMap campusMap;
-    private OrthogonalTiledMapRenderer mapRenderer;
-    private TiledMapTileLayer roadLayer;
-    private TiledMapTileLayer backgroundLayer;
-    private TiledMapTileLayer buildingLayer;
-    private TiledMapTileLayer highlightLayer;
-    private TiledMapTileLayer obstacleLayer;
-    private TiledMapTileLayer busLayer;
+    private final TiledMap campusMap;
+    private final OrthogonalTiledMapRenderer mapRenderer;
+    private final TiledMapTileLayer roadLayer;
+    private final TiledMapTileLayer buildingLayer;
+    private final TiledMapTileLayer highlightLayer;
+    private final TiledMapTileLayer obstacleLayer;
+    private final TiledMapTileLayer busLayer;
 
     // Other assets
-    private TiledMapTile building;
-    private Skin skin;
-    private Building[][] buildingGrid;
-    private SpriteBatch batch;
-    private Texture buildbuttonTexture;
-    private Texture exitbuttonTexture;
-    private Table popupTable;
-    private Texture buildingTexture1;
-    private Texture buildingTexture2;
-    private Texture buildingTexture3;
-    private Texture buildingTexture4;
-    private Texture resumebuttonTexture;
-    private Texture progressBarTexture;
-    private Texture progressKnobTexture;
+    private final Skin skin;
+    private final Building[][] buildingGrid;
+    private final SpriteBatch batch;
+    private final Table popupTable;
 
-    private Stage stage;
+    private final Stage stage;
 
-    private ImageButton buildbutton;
-    private ImageButton exitbutton;
+    private final ImageButton buildButton;
+    private final ImageButton exitButton;
 
     // UI Elements
-    private Label timerLabel;
-    private Label progressLabel;
-    private Label counterLabel;
-    private Label hintLabel;
+    private final Label timerLabel;
+    private final Label counterLabel;
+    private final Label hintLabel;
 
     // Timer Variables
-    private float countdownTime = 300; // 300 seconds
+    private final float countdownTime = 300; // 300 seconds
     private float elapsedTime = 0;
     private boolean isRunning = false;
 
@@ -78,12 +65,10 @@ public class MainScreen implements Screen {
     private int buildingType;
     private int buildingCounter = 0;
 
-    private ProgressBar progressBar;
     private int progress = 0;
 
     /**
      *  Constructor initialises the main game screen
-     * @param main
      */
     public MainScreen(Main main) {
         startTimer();
@@ -97,7 +82,6 @@ public class MainScreen implements Screen {
         campusMap = new TmxMapLoader().load("Map.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(campusMap);
         camera.setToOrtho(false, 960, 640);
-        backgroundLayer = (TiledMapTileLayer) campusMap.getLayers().get("BackgroundLayer");
         roadLayer = (TiledMapTileLayer) campusMap.getLayers().get("RoadLayer");
         obstacleLayer = (TiledMapTileLayer) campusMap.getLayers().get("ObstacleLayer");
         buildingLayer = (TiledMapTileLayer) campusMap.getLayers().get("BuildingLayer");
@@ -112,15 +96,15 @@ public class MainScreen implements Screen {
 
 
         // Load assets
-        buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
-        exitbuttonTexture = new Texture(Gdx.files.internal("back_button.png"));
-        buildingTexture1 = new Texture(Gdx.files.internal("accomodationBuilding.png"));
-        buildingTexture2 = new Texture(Gdx.files.internal("LectureHall.png"));
-        buildingTexture3 = new Texture(Gdx.files.internal("pub.png"));
-        buildingTexture4 = new Texture(Gdx.files.internal("cafe.png"));
-        resumebuttonTexture = new Texture(Gdx.files.internal("resume_button.png"));
-        progressBarTexture = new Texture(Gdx.files.internal("progress_bar.png"));
-        progressKnobTexture = new Texture(Gdx.files.internal("progress_knob.png"));
+        Texture buildbuttonTexture = new Texture(Gdx.files.internal("hammer_icon.png"));
+        Texture exitbuttonTexture = new Texture(Gdx.files.internal("back_button.png"));
+        Texture buildingTexture1 = new Texture(Gdx.files.internal("accommodationBuilding.png"));
+        Texture buildingTexture2 = new Texture(Gdx.files.internal("LectureHall.png"));
+        Texture buildingTexture3 = new Texture(Gdx.files.internal("pub.png"));
+        Texture buildingTexture4 = new Texture(Gdx.files.internal("cafe.png"));
+        Texture resumebuttonTexture = new Texture(Gdx.files.internal("resume_button.png"));
+        Texture progressBarTexture = new Texture(Gdx.files.internal("progress_bar.png"));
+        Texture progressKnobTexture = new Texture(Gdx.files.internal("progress_knob.png"));
 
         //Building Counter
         counterLabel = new Label("Buildings: " + buildingCounter, new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
@@ -147,25 +131,14 @@ public class MainScreen implements Screen {
         ProgressBar.ProgressBarStyle progressBarStyle = new ProgressBar.ProgressBarStyle();
         progressBarStyle.background = new TextureRegionDrawable(progressBarTexture);
         progressBarStyle.knob = new TextureRegionDrawable(progressKnobTexture);
-        progressBar = new ProgressBar(0, 100, 1, false, progressBarStyle);
+        ProgressBar progressBar = new ProgressBar(0, 100, 1, false, progressBarStyle);
         progressBar.setValue(progress); // Set initial value
 
-        progressLabel = new Label("Student Satisfaction:", skin);
+        Label progressLabel = new Label("Student Satisfaction:", skin);
         progressLabel.setColor(Color.BLACK);
         progressLabel.setFontScale(2);
 
-        // Not used in this implementation, saved for future use
-        /**
-        TextButton increaseButton = new TextButton("Increase", skin);
-        increaseButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                // Increase progress by 10 each time the button is clicked
-                progress += 10;
-                if (progress > 100) progress = 100; // Cap at 100
-                progressBar.setValue(progress);
-            }
-        });*/
+
 
         // Setup table for buttons and labels
         Table table = new Table();
@@ -186,29 +159,29 @@ public class MainScreen implements Screen {
         popupTable.row();
         popupTable.add(new Label("Select Building:", new Label.LabelStyle(new BitmapFont(), Color.WHITE))).pad(10).colspan(2);
         popupTable.row();
-        addIconWithLabel(popupTable, buildingTexture1, "Accomodation Building");
+        addIconWithLabel(popupTable, buildingTexture1, "Accommodation Building");
         addIconWithLabel(popupTable, buildingTexture2, "Lecture Building");
         addIconWithLabel(popupTable, buildingTexture3, "Recreational Building");
         addIconWithLabel(popupTable, buildingTexture4, "Restaurant Building");
 
         popupTable.setVisible(false); // Build menu is hidden until building button pressed
-        popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
+        popupTable.setPosition((float) Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, (float) Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
 
         // Set up building and exit buttons
         TextureRegionDrawable drawable = new TextureRegionDrawable(buildbuttonTexture);
-        buildbutton = new ImageButton(drawable);
+        buildButton = new ImageButton(drawable);
 
-        TextureRegionDrawable exitdrawable = new TextureRegionDrawable(exitbuttonTexture);
-        exitbutton = new ImageButton(exitdrawable);
+        TextureRegionDrawable exitDrawable = new TextureRegionDrawable(exitbuttonTexture);
+        exitButton = new ImageButton(exitDrawable);
 
         // Set up layout
-        table.add(buildbutton).width(75).height(75).expandX().left().padLeft(20).top();
+        table.add(buildButton).width(75).height(75).expandX().left().padLeft(20).top();
         table.add(timerLabel).width(150).padRight(20).padTop(20).top();
         table.add(resumeButton).width(75).height(75).padTop(10).top();
         // table.add(progressLabel).width(350).pad(20); NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
         //table.add(progressBar).width(300).height(30).center().pad(20);       NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
         table.add(counterLabel).padLeft(30).padTop(25).top();
-        table.add(exitbutton).width(150).height(75).expandX().right().padRight(20).padTop(10).top();
+        table.add(exitButton).width(150).height(75).expandX().right().padRight(20).padTop(10).top();
         table.row();
         table.add(hintLabel).center().colspan(2);
         //table.add(increaseButton).size(100,50);   NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
@@ -218,13 +191,13 @@ public class MainScreen implements Screen {
 
 
         // Creating listeners for buttons
-        buildbutton.addListener(new ClickListener() {
+        buildButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 popupTable.setVisible(!popupTable.isVisible());
             }
         });
-        exitbutton.addListener(new ChangeListener() {
+        exitButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 parent.changeScreen(Main.MENU, 0,0);
@@ -239,27 +212,23 @@ public class MainScreen implements Screen {
                 if (keycode == Input.Keys.B) {
                     buildMode = !buildMode;  // Toggle build mode
                     clearHighlightLayer();
-                    System.out.println("Build mode toggled: " + buildMode);
+                    // System.out.println("Build mode toggled: " + buildMode);
                     return true;
                 }
                 return false;
             }
 
             /**
-             * HARRY
              *
              * @param screenX X coordinate of mouse on screen
              * @param screenY Y coordinate of mouse on screen
-             * @param pointer
-             * @param button
-             * @return
              */
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                Vector3 worldCoords = new Vector3(screenX, screenY, 0);
-                camera.unproject(worldCoords);
-                int tileX = (int) (worldCoords.x / buildingLayer.getTileWidth());
-                int tileY = (int) (worldCoords.y / buildingLayer.getTileHeight());
+                Vector3 worldCoordinates = new Vector3(screenX, screenY, 0);
+                camera.unproject(worldCoordinates);
+                int tileX = (int) (worldCoordinates.x / buildingLayer.getTileWidth());
+                int tileY = (int) (worldCoordinates.y / buildingLayer.getTileHeight());
 
                 if (isOutOfBounds(tileX, tileY)) {
                     return false;
@@ -271,6 +240,7 @@ public class MainScreen implements Screen {
                 } else if (!buildMode && button == Input.Buttons.LEFT) {
                     Building clickedBuilding = buildingGrid[tileX][tileY];
                     if (clickedBuilding != null) {
+                        // Clicked on building logic goes here
                         System.out.println(clickedBuilding.getX() + " " + clickedBuilding.getY());
                     }
                     return false;
@@ -283,15 +253,14 @@ public class MainScreen implements Screen {
              *
              * @param screenX X coordinate of mouse screen position
              * @param screenY Y coordinate of mouse screen position
-             * @return
              */
             @Override
             public boolean mouseMoved(int screenX, int screenY) {
                 if (buildMode) {
-                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
-                    camera.unproject(worldCoords);
-                    int tileX = (int) (worldCoords.x / highlightLayer.getTileWidth());
-                    int tileY = (int) (worldCoords.y / highlightLayer.getTileHeight());
+                    Vector3 worldCoordinates = new Vector3(screenX, screenY, 0);
+                    camera.unproject(worldCoordinates);
+                    int tileX = (int) (worldCoordinates.x / highlightLayer.getTileWidth());
+                    int tileY = (int) (worldCoordinates.y / highlightLayer.getTileHeight());
 
                     if (!isOutOfBounds(tileX, tileY)) {
                         highlightPlacement(tileX, tileY);
@@ -305,20 +274,25 @@ public class MainScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer); // Set the input processor to the multiplexer
     }
 
+    /**
+     * Checks if found tile is out of bounds
+     * @param x x coordinate of tile
+     * @param y y coordinate of tile
+     */
     private boolean isOutOfBounds(int x, int y){
-        /**
-         * Checks if found tile is out of bounds
-         * @param x x coordinate of tile
-         * @param y y coordinate of tile
-         */
         // method to check if the tile is out of bounds
         // there are 30x20 tiles but index 0, 0 is the first tile so check bounds as 29 and 19
         return x >= 29 || y >= 19 || x < 0 || y < 0;
     }
 
+    /**
+     *
+     * @param buildingType currently selected building type
+     * @return The texture to display for currently selected building
+     */
     private TiledMapTile getBuildingTexture(int buildingType){
         if (buildingType == 1){
-            return (campusMap.getTileSets().getTileSet("accomodationBuilding").getTile(6));
+            return (campusMap.getTileSets().getTileSet("accommodationBuilding").getTile(6));
         }
         else if (buildingType == 2){
             // lecture building
@@ -335,15 +309,17 @@ public class MainScreen implements Screen {
 
     }
 
+
+    /**
+     * Places building on Map
+     * @param x x coordinate of tile to place building
+     * @param y y coordinate of tile to place building
+     **/
     private void placeBuilding(int x, int y) {
         // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
-        /**
-         * Places building on Map
-         * @param x x coordinate of tile to place building
-         * @param y y coordinate of tile to place building
-         **/
 
-        if(!isNextToRoad(x, y)){
+
+        if(isAwayFromRoad(x, y)){
             System.out.println("Can not place away from road");
             return;
         }
@@ -358,7 +334,7 @@ public class MainScreen implements Screen {
 
             buildingLayer.setCell(x, y, new TiledMapTileLayer.Cell().setTile(((getBuildingTexture(buildingType)))));
             if (buildingType ==  1) {
-                 newBuilding = new AccomodationBuilding(x, y);
+                 newBuilding = new AccommodationBuilding(x, y);
 
             }
             else if (buildingType == 2){
@@ -384,6 +360,7 @@ public class MainScreen implements Screen {
             buildMode = false;
             hintLabel.setVisible(false);
             buildingCounter += 1;
+            progress += 1;
             if(preferences.isMusicEnabled()){
                 buildingSoundEffect.play();
             }
@@ -394,16 +371,22 @@ public class MainScreen implements Screen {
         }
     }
 
+    /**
+     * Confirms specified tile does not contain any roads, buildings or obstacles
+     * @param x x coordinate of tile to check
+     * @param y y coordinate of tile to check
+     **/
     private boolean isAreaClear(int x, int y) {
-        /**
-        * Confirms specified tile does not contain any roads, buildings or obstacles
-        * @param x x coordinate of tile to check
-        * @param y y coordinate of tile to check
-         **/
         // Check if clear of roads
         if (!(roadLayer.getCell(x, y) == null && roadLayer.getCell(x + 1, y) == null &&
             roadLayer.getCell(x, y + 1) == null && roadLayer.getCell(x + 1, y + 1) == null)){
             System.out.println("Road Blocking");
+            return false;
+        }
+
+        if (!(obstacleLayer.getCell(x, y) == null && obstacleLayer.getCell(x + 1, y) == null &&
+                obstacleLayer.getCell(x, y + 1) == null && obstacleLayer.getCell(x + 1, y + 1) == null)){
+            System.out.println("Obstacle Blocking");
             return false;
         }
 
@@ -414,11 +397,6 @@ public class MainScreen implements Screen {
             return false;
         }
 
-        if (!(obstacleLayer.getCell(x, y) == null && obstacleLayer.getCell(x + 1, y) == null &&
-            obstacleLayer.getCell(x, y + 1) == null && obstacleLayer.getCell(x + 1, y + 1) == null)){
-            System.out.println("Obstacle Blocking");
-            return false;
-        }
 
 
         if (!(busLayer.getCell(x, y) == null && busLayer.getCell(x + 1, y) == null &&
@@ -432,27 +410,29 @@ public class MainScreen implements Screen {
         return true;
     }
 
-    private boolean isNextToRoad(int x, int y){
-        /**
-         * Confirms any of a two by two building will be adjacent to a road
-         * @param x x coordinate of tile to check
-         * @param y y coordinate of tile to check
-         **/
+
+    /**
+     * Checks if tile is not adjacent to road
+     * @param x x coordinate of tile to check
+     * @param y y coordinate of tile to check
+     **/
+    private boolean isAwayFromRoad(int x, int y){
         // Buildings are 2x2 so checks if any of the four tiles are next to road
-        return (roadLayer.getCell(x - 1, y) != null ||
-            roadLayer.getCell(x - 1, y+1) != null ||
-            roadLayer.getCell(x, y + 2) != null ||
-            roadLayer.getCell(x + 1, y + 2) != null ||
-            roadLayer.getCell(x + 2, y) != null ||
-            roadLayer.getCell(x + 2, y + 1) != null ||
-            roadLayer.getCell(x + 1, y - 1) != null ||
-            roadLayer.getCell(x, y - 1) != null);
+        return (roadLayer.getCell(x - 1, y) == null &&
+                roadLayer.getCell(x - 1, y + 1) == null &&
+                roadLayer.getCell(x, y + 2) == null &&
+                roadLayer.getCell(x + 1, y + 2) == null &&
+                roadLayer.getCell(x + 2, y) == null &&
+                roadLayer.getCell(x + 2, y + 1) == null &&
+                roadLayer.getCell(x + 1, y - 1) == null &&
+                roadLayer.getCell(x, y - 1) == null);
     }
 
-    private void clearHighlightLayer()
     /**
      * Clears all highlights on screen
-     **/{
+     **/
+    private void clearHighlightLayer()
+{
         for (int x = 0; x < highlightLayer.getWidth(); x++) {
             for (int y = 0; y < highlightLayer.getHeight(); y++) {
                 highlightLayer.setCell(x, y, null); // Clear each cell
@@ -460,18 +440,19 @@ public class MainScreen implements Screen {
         }
     }
 
+
+    /**
+     * When placing a building checks if region is appropriate for building
+     * if so highlights building there
+     * @param x x coordinate of tile to check
+     * @param y y coordinate of tile to check
+     **/
     private void highlightPlacement(int x, int y) {
-        /**
-         * When placing a building checks if region is appropriate for building
-         * if so highlights building there
-         * @param x x coordinate of tile to check
-         * @param y y coordinate of tile to check
-         **/
         // Clear previous highlights
         clearHighlightLayer();
 
         // Highlight the new position
-        if(!isNextToRoad(x, y)){
+        if(isAwayFromRoad(x, y)){
             return;
         }
         if (isAreaClear(x, y)) {
@@ -499,24 +480,24 @@ public class MainScreen implements Screen {
             /**
              * This method takes in which button is clicked and assigns buildingType the
              * corresponding building to be placed.
-             * @param event
-             * @param x
-             * @param y
+
              */
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 popupTable.setVisible(!popupTable.isVisible());
-                if (labelText.equals("Accomodation Building")){
-                    buildingType = 1;
-                }
-                else if (labelText.equals("Lecture Building")){
-                    buildingType = 2;
-                }
-                else if (labelText.equals("Recreational Building")){
-                    buildingType = 4;
-                }
-                else if (labelText.equals("Restaurant Building")){
-                    buildingType = 3;
+                switch (labelText) {
+                    case "Accommodation Building":
+                        buildingType = 1;
+                        break;
+                    case "Lecture Building":
+                        buildingType = 2;
+                        break;
+                    case "Recreational Building":
+                        buildingType = 4;
+                        break;
+                    case "Restaurant Building":
+                        buildingType = 3;
+                        break;
                 }
                 buildMode = true;
                 hintLabel.setVisible(true);
@@ -594,12 +575,12 @@ public class MainScreen implements Screen {
         stage.getViewport().update(width, height, true);
 
         popupTable.setPosition(
-            (1920 / 2) - (popupTable.getWidth() / 2),  // X position
-            (1080 / 2) - (popupTable.getHeight() / 2)  // Y position
+            ((float) 1920 / 2) - (popupTable.getWidth() / 2),  // X position
+            ((float) 1080 / 2) - (popupTable.getHeight() / 2)  // Y position
         );
 
-        buildbutton.setPosition(10, 1080 - 10);
-        exitbutton.setPosition(10, 1080 - 10);
+        buildButton.setPosition(10, 1080 - 10);
+        exitButton.setPosition(10, 1080 - 10);
     }
 
     @Override

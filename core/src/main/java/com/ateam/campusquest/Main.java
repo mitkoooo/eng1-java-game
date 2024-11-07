@@ -54,6 +54,7 @@ public class Main extends Game {
      */
     @Override
     public void create() {
+
         loadingScreen = new LoadingScreen(this);
         preferences = new AppPreferences();
         setScreen(loadingScreen);

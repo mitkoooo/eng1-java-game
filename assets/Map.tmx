@@ -4,7 +4,7 @@
  <tileset firstgid="3" source="Building.tsx"/>
  <tileset firstgid="4" source="LectureBuilding.tsx"/>
  <tileset firstgid="5" source="pubBuilding.tsx"/>
- <tileset firstgid="6" source="accomodationBuilding.tsx"/>
+ <tileset firstgid="6" source="accommodationBuilding.tsx"/>
  <tileset firstgid="7" source="cafeBuilding.tsx"/>
  <tileset firstgid="8" source="Grass.tsx"/>
  <tileset firstgid="9" source="tree1.tsx"/>

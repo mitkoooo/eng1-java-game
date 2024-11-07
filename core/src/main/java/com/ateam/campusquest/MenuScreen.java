@@ -25,6 +25,7 @@ public class MenuScreen implements Screen {
         parent = main;
         stage = new Stage(new ScreenViewport());
 
+
     }
 
     // Called when the screen is visible to the user
@@ -36,7 +37,7 @@ public class MenuScreen implements Screen {
         Table table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
-
+        
         Skin skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 
         // Creating and adding buttons to table for menu options
