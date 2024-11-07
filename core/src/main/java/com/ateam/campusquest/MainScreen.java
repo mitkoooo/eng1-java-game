@@ -248,8 +248,8 @@ public class MainScreen implements Screen {
             /**
              * HARRY
              *
-             * @param screenX
-             * @param screenY
+             * @param screenX X coordinate of mouse on screen
+             * @param screenY Y coordinate of mouse on screen
              * @param pointer
              * @param button
              * @return
@@ -279,10 +279,10 @@ public class MainScreen implements Screen {
             }
 
             /**
-             * Harry
+             * Handles mouse movement
              *
-             * @param screenX
-             * @param screenY
+             * @param screenX X coordinate of mouse screen position
+             * @param screenY Y coordinate of mouse screen position
              * @return
              */
             @Override
@@ -306,6 +306,11 @@ public class MainScreen implements Screen {
     }
 
     private boolean isOutOfBounds(int x, int y){
+        /**
+         * Checks if found tile is out of bounds
+         * @param x x coordinate of tile
+         * @param y y coordinate of tile
+         */
         // method to check if the tile is out of bounds
         // there are 30x20 tiles but index 0, 0 is the first tile so check bounds as 29 and 19
         return x >= 29 || y >= 19 || x < 0 || y < 0;
@@ -332,6 +337,12 @@ public class MainScreen implements Screen {
 
     private void placeBuilding(int x, int y) {
         // Check if the area is clear (i.e., not on the road layer) for a 2x2 space
+        /**
+         * Places building on Map
+         * @param x x coordinate of tile to place building
+         * @param y y coordinate of tile to place building
+         **/
+
         if(!isNextToRoad(x, y)){
             System.out.println("Can not place away from road");
             return;
@@ -384,6 +395,11 @@ public class MainScreen implements Screen {
     }
 
     private boolean isAreaClear(int x, int y) {
+        /**
+        * Confirms specified tile does not contain any roads, buildings or obstacles
+        * @param x x coordinate of tile to check
+        * @param y y coordinate of tile to check
+         **/
         // Check if clear of roads
         if (!(roadLayer.getCell(x, y) == null && roadLayer.getCell(x + 1, y) == null &&
             roadLayer.getCell(x, y + 1) == null && roadLayer.getCell(x + 1, y + 1) == null)){
@@ -400,14 +416,14 @@ public class MainScreen implements Screen {
 
         if (!(obstacleLayer.getCell(x, y) == null && obstacleLayer.getCell(x + 1, y) == null &&
             obstacleLayer.getCell(x, y + 1) == null && obstacleLayer.getCell(x + 1, y + 1) == null)){
-            System.out.println("Obstacle Blocking Blocking");
+            System.out.println("Obstacle Blocking");
             return false;
         }
 
 
         if (!(busLayer.getCell(x, y) == null && busLayer.getCell(x + 1, y) == null &&
             busLayer.getCell(x, y + 1) == null && busLayer.getCell(x + 1, y + 1) == null)){
-            System.out.println("Obstacle Blocking Blocking");
+            System.out.println("Bus Stop Blocking");
             return false;
         }
 
@@ -417,6 +433,11 @@ public class MainScreen implements Screen {
     }
 
     private boolean isNextToRoad(int x, int y){
+        /**
+         * Confirms any of a two by two building will be adjacent to a road
+         * @param x x coordinate of tile to check
+         * @param y y coordinate of tile to check
+         **/
         // Buildings are 2x2 so checks if any of the four tiles are next to road
         return (roadLayer.getCell(x - 1, y) != null ||
             roadLayer.getCell(x - 1, y+1) != null ||
@@ -428,7 +449,10 @@ public class MainScreen implements Screen {
             roadLayer.getCell(x, y - 1) != null);
     }
 
-    private void clearHighlightLayer() {
+    private void clearHighlightLayer()
+    /**
+     * Clears all highlights on screen
+     **/{
         for (int x = 0; x < highlightLayer.getWidth(); x++) {
             for (int y = 0; y < highlightLayer.getHeight(); y++) {
                 highlightLayer.setCell(x, y, null); // Clear each cell
@@ -437,6 +461,12 @@ public class MainScreen implements Screen {
     }
 
     private void highlightPlacement(int x, int y) {
+        /**
+         * When placing a building checks if region is appropriate for building
+         * if so highlights building there
+         * @param x x coordinate of tile to check
+         * @param y y coordinate of tile to check
+         **/
         // Clear previous highlights
         clearHighlightLayer();
 
