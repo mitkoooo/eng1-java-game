@@ -65,6 +65,7 @@ public class MainScreen implements Screen {
     private Label timerLabel;
     private Label progressLabel;
     private Label counterLabel;
+    private Label hintLabel;
 
     // Timer Variables
     private float countdownTime = 300; // 300 seconds
@@ -171,6 +172,10 @@ public class MainScreen implements Screen {
         table.top();
         table.setFillParent(true);
 
+        hintLabel = new Label("Press B to exit build mode", new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
+        hintLabel.setFontScale(3);
+        hintLabel.setVisible(false);
+
         // Set up popup table for building selection
         popupTable = new Table();
         popupTable.setSize(300, 500);
@@ -204,6 +209,8 @@ public class MainScreen implements Screen {
         //table.add(progressBar).width(300).height(30).center().pad(20);       NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
         table.add(counterLabel).padLeft(30).padTop(25).top();
         table.add(exitbutton).width(150).height(75).expandX().right().padRight(20).padTop(10).top();
+        table.row();
+        table.add(hintLabel).center().colspan(2);
         //table.add(increaseButton).size(100,50);   NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
 
         stage.addActor(table);
@@ -364,6 +371,7 @@ public class MainScreen implements Screen {
             buildingGrid[x+1][y] = newBuilding;
             buildingGrid[x+1][y+1] = newBuilding;
             buildMode = false;
+            hintLabel.setVisible(false);
             buildingCounter += 1;
             if(preferences.isMusicEnabled()){
                 buildingSoundEffect.play();
@@ -481,6 +489,7 @@ public class MainScreen implements Screen {
                     buildingType = 3;
                 }
                 buildMode = true;
+                hintLabel.setVisible(true);
             }
          });
 
