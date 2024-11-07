@@ -15,22 +15,31 @@ public class MenuScreen implements Screen {
     private final Stage stage;
     private Main parent;
 
-
+    /**
+     * Constructor initialises the menu screen, the first proper screen
+     * that the user will see, here they can start game, go to preferences
+     * screen or quit
+     * @param main
+     */
     public MenuScreen(Main main) {
         parent = main;
         stage = new Stage(new ScreenViewport());
 
     }
 
+    // Called when the screen is visible to the user
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(stage);
+        Gdx.input.setInputProcessor(stage); // Setting input processor
+
+        // Creating table to organise UI elements
         Table table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
 
         Skin skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 
+        // Creating and adding buttons to table for menu options
         TextButton newGame = new TextButton("New Game", skin);
         TextButton preferences = new TextButton("Preferences", skin);
         TextButton exit = new TextButton("Exit", skin);
@@ -62,6 +71,7 @@ public class MenuScreen implements Screen {
 
     }
 
+    // Called every frame to update screen
     @Override
     public void render(float v) {
         Gdx.gl.glClearColor(0,0,0,1);
@@ -70,11 +80,14 @@ public class MenuScreen implements Screen {
         stage.draw();
     }
 
+    // Called every time window is resized
     @Override
     public void resize(int i, int i1) {
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
     }
 
+
+    // Unused methods due as implementing screen
     @Override
     public void pause() {
 
@@ -90,6 +103,7 @@ public class MenuScreen implements Screen {
 
     }
 
+    // Dispose of resources no longer needed
     @Override
     public void dispose() {
         stage.dispose();

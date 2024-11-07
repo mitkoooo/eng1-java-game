@@ -1,6 +1,7 @@
 package com.ateam.campusquest;
 
 import com.badlogic.gdx.*;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -18,15 +19,18 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
 
     private final Main parent;
     private OrthographicCamera camera;
-    private Viewport viewport;
 
+    private Music buildingSoundEffect;
+    private AppPreferences preferences;
+
+    // Layers for tiled map
     private TiledMap campusMap;
     private OrthogonalTiledMapRenderer mapRenderer;
     private TiledMapTileLayer roadLayer;
@@ -35,6 +39,8 @@ public class MainScreen implements Screen {
     private TiledMapTileLayer highlightLayer;
     private TiledMapTileLayer obstacleLayer;
     private TiledMapTileLayer busLayer;
+
+    // Other assets
     private TiledMapTile building;
     private Skin skin;
     private Building[][] buildingGrid;
@@ -46,7 +52,6 @@ public class MainScreen implements Screen {
     private Texture buildingTexture2;
     private Texture buildingTexture3;
     private Texture buildingTexture4;
-    private Texture pausebuttonTexture;
     private Texture resumebuttonTexture;
     private Texture progressBarTexture;
     private Texture progressKnobTexture;
@@ -56,13 +61,17 @@ public class MainScreen implements Screen {
     private ImageButton buildbutton;
     private ImageButton exitbutton;
 
+    // UI Elements
     private Label timerLabel;
     private Label progressLabel;
     private Label counterLabel;
+
+    // Timer Variables
     private float countdownTime = 300; // 300 seconds
     private float elapsedTime = 0;
     private boolean isRunning = false;
 
+    // Building mode variables
     private boolean buildMode = false;
     private boolean suspendedBuilding = false;
     private int buildingType;
@@ -71,10 +80,17 @@ public class MainScreen implements Screen {
     private ProgressBar progressBar;
     private int progress = 0;
 
+    /**
+     *  Constructor initialises the main game screen
+     * @param main
+     */
     public MainScreen(Main main) {
         startTimer();
         this.parent = main;
         camera = new OrthographicCamera();
+        preferences = new AppPreferences();
+        buildingSoundEffect = Gdx.audio.newMusic(Gdx.files.internal("buildingSoundEffect.mp3"));
+        updateSoundSettings();
 
         // Load the Tiled campus map
         campusMap = new TmxMapLoader().load("Map.tmx");
@@ -89,7 +105,7 @@ public class MainScreen implements Screen {
         buildingGrid = new Building[30][20];
         buildingType = 1;
 
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new FitViewport(1920, 1080));
         batch = new SpriteBatch();
         skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 
@@ -113,9 +129,9 @@ public class MainScreen implements Screen {
         timerLabel = new Label(formatTime(countdownTime), new Label.LabelStyle(new BitmapFont(), Color.WHITE ));
         timerLabel.setFontScale(3);
 
+        // Button to resume/pause timer
         TextureRegionDrawable resumeDrawable = new TextureRegionDrawable(resumebuttonTexture);
         ImageButton resumeButton = new ImageButton(resumeDrawable);
-
         resumeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -137,6 +153,8 @@ public class MainScreen implements Screen {
         progressLabel.setColor(Color.BLACK);
         progressLabel.setFontScale(2);
 
+        // Not used in this implementation, saved for future use
+        /**
         TextButton increaseButton = new TextButton("Increase", skin);
         increaseButton.addListener(new ClickListener() {
             @Override
@@ -146,13 +164,14 @@ public class MainScreen implements Screen {
                 if (progress > 100) progress = 100; // Cap at 100
                 progressBar.setValue(progress);
             }
-        });
+        });*/
 
-        // Setup UI
+        // Setup table for buttons and labels
         Table table = new Table();
         table.top();
         table.setFillParent(true);
 
+        // Set up popup table for building selection
         popupTable = new Table();
         popupTable.setSize(300, 500);
         popupTable.setBackground(new TextureRegionDrawable(new Texture(Gdx.files.internal("popup_background.png"))));
@@ -167,9 +186,10 @@ public class MainScreen implements Screen {
         addIconWithLabel(popupTable, buildingTexture3, "Recreational Building");
         addIconWithLabel(popupTable, buildingTexture4, "Restaurant Building");
 
-        popupTable.setVisible(false);
+        popupTable.setVisible(false); // Build menu is hidden until building button pressed
         popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
 
+        // Set up building and exit buttons
         TextureRegionDrawable drawable = new TextureRegionDrawable(buildbuttonTexture);
         buildbutton = new ImageButton(drawable);
 
@@ -177,18 +197,20 @@ public class MainScreen implements Screen {
         exitbutton = new ImageButton(exitdrawable);
 
         // Set up layout
-        table.add(buildbutton).width(100).height(100).expandX().left().padLeft(20);
-        table.add(timerLabel).width(150).padRight(20);
-        table.add(resumeButton).width(100).height(100);
-        // table.add(progressLabel).width(350).pad(20);
-        //table.add(progressBar).width(300).height(30).center().pad(20);
-        table.add(counterLabel).padLeft(30);
-        table.add(exitbutton).width(200).height(200).expandX().right().padRight(20);
-        //table.add(increaseButton).size(100,50);
+        table.add(buildbutton).width(75).height(75).expandX().left().padLeft(20).top();
+        table.add(timerLabel).width(150).padRight(20).padTop(20).top();
+        table.add(resumeButton).width(75).height(75).padTop(10).top();
+        // table.add(progressLabel).width(350).pad(20); NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
+        //table.add(progressBar).width(300).height(30).center().pad(20);       NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
+        table.add(counterLabel).padLeft(30).padTop(25).top();
+        table.add(exitbutton).width(150).height(75).expandX().right().padRight(20).padTop(10).top();
+        //table.add(increaseButton).size(100,50);   NOT USED IN THIS IMPLEMENTATION, SAVED FOR FUTURE USE
 
         stage.addActor(table);
         stage.addActor(popupTable);
 
+
+        // Creating listeners for buttons
         buildbutton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -216,6 +238,15 @@ public class MainScreen implements Screen {
                 return false;
             }
 
+            /**
+             * HARRY
+             *
+             * @param screenX
+             * @param screenY
+             * @param pointer
+             * @param button
+             * @return
+             */
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 Vector3 worldCoords = new Vector3(screenX, screenY, 0);
@@ -240,6 +271,13 @@ public class MainScreen implements Screen {
                 return false;
             }
 
+            /**
+             * Harry
+             *
+             * @param screenX
+             * @param screenY
+             * @return
+             */
             @Override
             public boolean mouseMoved(int screenX, int screenY) {
                 if (buildMode) {
@@ -259,9 +297,6 @@ public class MainScreen implements Screen {
         multiplexer.addProcessor(stage);
         Gdx.input.setInputProcessor(multiplexer); // Set the input processor to the multiplexer
     }
-
-
-
 
     private boolean isOutOfBounds(int x, int y){
         // method to check if the tile is out of bounds
@@ -330,6 +365,9 @@ public class MainScreen implements Screen {
             buildingGrid[x+1][y+1] = newBuilding;
             buildMode = false;
             buildingCounter += 1;
+            if(preferences.isMusicEnabled()){
+                buildingSoundEffect.play();
+            }
             counterLabel.setText("Buildings: " + buildingCounter);
 
         } else {
@@ -412,6 +450,7 @@ public class MainScreen implements Screen {
     public void show() {
     }
 
+    // Add building icons with corresponding labels to the popup table
     private void addIconWithLabel(Table table, Texture iconTexture, String labelText) {
         TextureRegionDrawable iconDrawable = new TextureRegionDrawable(iconTexture);
 
@@ -419,6 +458,13 @@ public class MainScreen implements Screen {
         iconButton.setSize(50,50);
 
         iconButton.addListener(new ClickListener(){
+            /**
+             * This method takes in which button is clicked and assigns buildingType the
+             * corresponding building to be placed.
+             * @param event
+             * @param x
+             * @param y
+             */
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 popupTable.setVisible(!popupTable.isVisible());
@@ -444,6 +490,7 @@ public class MainScreen implements Screen {
     }
 
 
+    // Render method to update screen and time every frame
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1); // Set clear colour
@@ -473,36 +520,47 @@ public class MainScreen implements Screen {
 
     }
 
+    // Starts Timer
     private void startTimer(){
         elapsedTime = 0;
         isRunning = true;
         suspendedBuilding = false;
     }
 
+    // Pause countdown timer
     private void pauseTimer(){
         isRunning = false;
         suspendedBuilding = true;
     }
 
+    // Resume the countdown timer
     private void resumeTimer(){
         isRunning = true;
         suspendedBuilding = false;
     }
 
+    // Method to format the time used in the countdown timer
     private String formatTime(float time){
         int minutes = (int) (time / 60);
         int seconds = (int) (time % 60);
         return String.format("%02d:%02d", minutes, seconds);
     }
 
+    public void updateSoundSettings(){
+        buildingSoundEffect.setVolume(preferences.getSoundVolume());
+    }
+
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        popupTable.setPosition(Gdx.graphics.getWidth() / 2 - popupTable.getWidth() / 2, Gdx.graphics.getHeight() / 2 - popupTable.getHeight() / 2);
 
-        buildbutton.setPosition(10, height  - 10);
-        exitbutton.setPosition(10, height  - 10);
+        popupTable.setPosition(
+            (1920 / 2) - (popupTable.getWidth() / 2),  // X position
+            (1080 / 2) - (popupTable.getHeight() / 2)  // Y position
+        );
 
+        buildbutton.setPosition(10, 1080 - 10);
+        exitbutton.setPosition(10, 1080 - 10);
     }
 
     @Override
@@ -519,7 +577,6 @@ public class MainScreen implements Screen {
     public void hide() {
 
     }
-
 
     @Override
     public void dispose() {
