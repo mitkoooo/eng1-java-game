@@ -2,16 +2,16 @@ package com.ateam.campusquest;
 
 import com.badlogic.gdx.graphics.Texture;
 
-public class Building extends Tile {
-    private final Texture texture;
+abstract class Building {
+    private int x, y; // Position of the building (bottom-left tile)
 
-    public Building(Texture texture){
-        this.texture = texture;
+    public Building(int x, int y) {
+        this.x = x;
+        this.y = y;
 
     }
 
-    public Texture getTexture(){
-        return texture;
-    }
+    public int getX() { return x; }
+    public int getY() { return y; }
 
 }

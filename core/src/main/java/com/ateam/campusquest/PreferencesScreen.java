@@ -17,33 +17,38 @@ public class PreferencesScreen implements Screen {
     private Label titleLabel;
     private Label volumeMusicLabel;
     private Label volumeSoundLabel;
-    private Label musicOnOffLabel;
-    private Label soundOnOffLabel;
 
+    /**
+     * Constructor for preferences screen
+     * @param main
+     */
     public PreferencesScreen(Main main) {
         parent = main;
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new ScreenViewport()); // Initialise the stage with viewport to fit screen
 
     }
 
+    // Called when the screen in made visible
     @Override
     public void show() {
-        stage.clear();
+        stage.clear(); // Clear any previous actors or UI components
         Gdx.input.setInputProcessor(stage);
 
+        // Creating table to place UI components onto
         Table table = new Table();
         table.setFillParent(true);
-        table.setDebug(true);
         stage.addActor(table);
 
         Skin skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 
+        // Creating sliders to adjust sound volume
         final Slider volumeMusicSlider = new Slider(0f,1f,0.1f,false,skin);
         volumeMusicSlider.setValue(parent.getPreferences().getMusicVolume());
         volumeMusicSlider.addListener(new EventListener() {
             @Override
             public boolean handle(Event event) {
                 parent.getPreferences().setMusicVolume(volumeMusicSlider.getValue());
+                parent.updateMusicSettings();
                 return false;
             }
         });
@@ -58,61 +63,33 @@ public class PreferencesScreen implements Screen {
             }
         });
 
-        final CheckBox musicCheckBox = new CheckBox(null, skin);
-        musicCheckBox.setChecked(parent.getPreferences().isMusicEnabled());
-        musicCheckBox.addListener(new EventListener() {
-            @Override
-            public boolean handle(Event event) {
-                boolean enabled = musicCheckBox.isChecked();
-                parent.getPreferences().setMusicEnabled(enabled);
-                return false;
-            }
-        });
-
-        final CheckBox soundCheckBox = new CheckBox(null, skin);
-        soundCheckBox.setChecked(parent.getPreferences().isSoundEnabled());
-        soundCheckBox.addListener(new EventListener() {
-            @Override
-            public boolean handle(Event event) {
-                boolean enabled = soundCheckBox.isChecked();
-                parent.getPreferences().setSoundEnabled(enabled);
-                return false;
-            }
-        });
-
         final TextButton backButton = new TextButton("Back", skin, "small");
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor){
-                parent.changeScreen(Main.MENU);
+                parent.changeScreen(Main.MENU,0, 0);
             }
         });
 
 
+        // Creating and adding Labels,sliders and checkboxes to the table
         titleLabel = new Label( "Preferences", skin );
         volumeMusicLabel = new Label( "Music", skin );
         volumeSoundLabel = new Label( "Sound Effects", skin );
-        musicOnOffLabel = new Label( "On/Off", skin );
-        soundOnOffLabel = new Label( "On/Off", skin );
 
         table.add(titleLabel).colspan(2);
         table.row().pad(10,0,0,10);
         table.add(volumeMusicLabel).left();
         table.add(volumeMusicSlider);
         table.row().pad(10,0,0,10);
-        table.add(musicOnOffLabel).left();
-        table.add(musicCheckBox);
-        table.row().pad(10,0,0,10);
         table.add(volumeSoundLabel).left();
         table.add(volumeSoundSlider);
-        table.row().pad(10,0,0,10);
-        table.add(soundOnOffLabel).left();
-        table.add(soundCheckBox);
         table.row().pad(10,0,0,10);
         table.add(backButton).colspan(2);
 
     }
 
+    // Render method is called every frame to update screen
     @Override
     public void render(float v) {
         Gdx.gl.glClearColor(0f,0f,0f,1);
@@ -122,11 +99,13 @@ public class PreferencesScreen implements Screen {
         stage.draw();
     }
 
+    // Called everytime window size changes
     @Override
     public void resize(int i, int i1) {
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
     }
 
+    // Unused methods as implementing screen
     @Override
     public void pause() {
 

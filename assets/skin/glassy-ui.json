@@ -55,9 +55,10 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 }
 com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle: {
 	default: {
+
 		up: button
 		down: button-down
-	}
+	},
 	small: {
 		up: button-small
 		down: button-small-down
